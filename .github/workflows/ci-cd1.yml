@@ -1,0 +1,104 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ dev, stg, prod, infra, main ]
+#  pull-request:
+#    branches: [ dev, stg, prod, infra, main ]
+
+env:
+    DOCKERHUB_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+    REGISTRY: docker.io
+    IMAGE_NAME: flaskapp
+    DOCKERHUB_TOKEN: "${{ secrets.DOCKER_TOKEN }}"
+    NAMESPACE: ${{ github.ref_name }}
+    IMAGE_TAG: ${{ github.ref_name }}
+
+jobs:
+
+  deploy-infra:
+      if: github.ref == 'refs/heads/infra'
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3 
+
+        - name: Install Tailscale
+          run: |
+            curl -fsSL https://tailscale.com/install.sh | sh
+            sudo tailscale up --authkey=${{ secrets.TAILSCALE_AUTH_TOKEN }}
+  
+        - name: Connect to VM via Tailscale
+          run: |
+            ssh facu@100.70.9.102 "echo 'Connected to Private VM!'"
+      
+        #- name: Install SSH key
+        #  uses: shimataro/ssh-key-action@v
+        #  with:
+        #    key: ${{ secrets.SSH_PRIVATE_KEY }}
+        #    known_hosts: 'VM-CON-MINIKUBE'
+#
+        #- name: Adding Known Hosts
+        #  run: |
+        #    ssh-keyscan -H ${{ env.SERVEO_HOST }} >> ~/.ssh/known_hosts
+          
+#        - name: Deploy to Minikube
+#          run: |
+#              ssh -J serveo.net ${{ secrets.SSH_USERNAME }}@${{ env.SERVEO_HOST }} "
+#                export KUBECONFIG=/home/${{ secrets.SSH_USERNAME }}/.kube/config
+#                kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
+#                git pull
+#                cd /k8s-flaskapp-ha/k8s/base
+#                kubectl apply -f . -n ${{ env.NAMESPACE }}
+#              " 
+#
+#  build:
+#    runs-on: ubuntu-latest
+#    needs: deploy-infra
+#    steps: 
+#      - uses: actions/checkout@v2
+#
+#      - name: Builder
+#        uses: docker/setup-build-action@v1
+#
+#      - name: login en Docker Hub
+#        uses: docker/login-action@v1
+#        with:
+#            username: "${{ secrets.DOCKER_USERNAME }}"
+#            password: "${{ secrets.DOCKER_TOKEN }}"
+#      
+#      - name: Build & Push
+#        uses: docker/build-push-action@v3
+#        with:
+#          context: ./FlaskApp
+#          file: ./FlaskApp/Dockerfile
+#          push: true
+#          tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+#
+#  deploy:
+#    needs: [deploy-infra, build]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      
+#      - name: Install SSH key
+#        uses: shimataro/ssh-key-action@v2
+#        with:
+#          key: ${{ secrets.SSH_PRIVATE_KEY }}
+#          known_hosts: 'VM-CON-MINIKUBE'
+#    
+#          
+#      - name: Adding Known Hosts
+#        run: |
+#            ssh-keyscan -H ${{ env.SERVEO_HOST }} >> ~/.ssh/known_hosts
+#      
+#      - name: Deploy to Minikube
+#        run: |
+#          ssh -J serveo.net ${{ secrets.SSH_USERNAME }}@${{ env.SERVEO_HOST }} "
+#            export KUBECONFIG=/home/${{ secrets.SSH_USERNAME }}/.kube/config
+#            kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
+#            cd /app
+#            git pull
+#            kubectl apply -k overlays/${{ env.NAMESPACE }}/ -n ${{ env.NAMESPACE }}
+#          " 
+  
+

@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+     - ./nginx.conf:/etc/nginx/conf.d/default.conf #- ./nginx.conf:/etc/nginx/nginx.conf
+    restart: always
+    depends_on:
+      - flaskapp-1
+      - flaskapp-2
+      - flaskapp-3 
+    networks:
+      - app-network
+
+  flaskapp-1:
+    image: facumiglio/flaskapp:1.0.0
+    #ports:
+    #  - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=password #${DB_PASSWORD}     Usa variables de entorno para mayor seguridad
+      - DB_NAME=flaskapp
+      - REPLICA_ID=1
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  flaskapp-2:
+    image: facumiglio/flaskapp:1.0.0
+    #ports:
+    #  - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=password #${DB_PASSWORD}     Usa variables de entorno para mayor seguridad
+      - DB_NAME=flaskapp
+      - REPLICA_ID=2
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  flaskapp-3:
+    image: facumiglio/flaskapp:1.0.0
+    #ports:
+    #  - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=password #${DB_PASSWORD}     Usa variables de entorno para mayor seguridad
+      - DB_NAME=flaskapp
+      - REPLICA_ID=3
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8.0     # Especifica la versión para mayor control de entornos
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password #${DB_PASSWORD}   Utiliza variables de entorno en lugar de valores fijos
+      - MYSQL_DATABASE=flaskapp
+    volumes:
+      - db_data:/var/lib/mysql             # Persistencia de datos
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:

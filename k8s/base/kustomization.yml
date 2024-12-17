@@ -1,0 +1,17 @@
+resources:
+  - mysql-deployment.yml
+  - mysql-svc.yml
+  - ingress.yml
+  - flaskapp-svc.yml
+  - flaskapp-deployment.yml
+  - nginx-svc.yml
+  - nginx-deployment.yml
+
+commonLabels:
+  app: flaskapp
+  #app: mysql
+
+configMapGenerator:
+  - name: nginx-config
+    files: 
+      - default.conf=../nginx.conf

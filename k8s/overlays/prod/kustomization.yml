@@ -1,0 +1,10 @@
+apiVersion: kustomization.config.k8s.io/v1beta1
+kind: Namespace
+namespace: prod
+resources:
+  - ../../base
+commonLabels:
+  env: prod
+images:
+  - name: facumiglio/flaskapp
+    newTag: prod

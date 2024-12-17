@@ -1,0 +1,9 @@
+
+
+# Crearse cuenta en tailscale
+# Instalar tailscale en vm
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+# Loguearse con link y cuenta creada
+# Generate auth key
+
